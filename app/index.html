@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClipClash</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { background-color: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const INITIAL_FEED = [
+      {
+        id: 'v1',
+        videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-code-animation-on-a-tech-display-42865-large.mp4',
+        author: 'kuanysh',
+        club: { name: 'Q-Empire', tag: 'Q-EMP', rank: '#1' },
+        caption: 'Запустили тест очистки воздуха Q-Air! Смотрите на результат в смоге 🚀',
+        projectUrl: 'https://github.com',
+        likes: 2450,
+        comments: [
+          { id: 1, user: 'alex_dev', text: 'Жесткий контент! В какой программе собирали 3D модель?' },
+          { id: 2, user: 'q_fan', text: 'Клуб Q-Empire вперед! 🔥' }
+        ]
+      },
+      {
+        id: 'v2',
+        videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-hands-holding-a-smartphone-with-green-screen-41528-large.mp4',
+        author: 'meme_lord',
+        club: { name: 'Meme Lords', tag: 'ROFL', rank: '#2' },
+        caption: 'Когда задеплоил баг на прод в 3 часа ночи и надеешься, что никто не заметит 💀',
+        projectUrl: null,
+        likes: 4890,
+        comments: [
+          { id: 1, user: 'senior_coder', text: 'Жиза ппц, каждый день так))))' }
+        ]
+      }
+    ];
+
+    const LEADERBOARD_CLUBS = [
+      { rank: '#1', name: 'Q-Empire', tag: 'Q-EMP', members: 42, points: 15400 },
+      { rank: '#2', name: 'Meme Lords', tag: 'ROFL', members: 128, points: 11200 },
+      { rank: '#3', name: 'Almaty Builders', tag: 'ALA', members: 19, points: 8900 }
+    ];
+
+    function App() {
+      const [feed, setFeed] = useState(INITIAL_FEED);
+      const [currentIndex, setCurrentIndex] = useState(0);
+      const [liked, setLiked] = useState(false);
+      const [showChat, setShowChat] = useState(false);
+      const [showLeaderboard, setShowLeaderboard] = useState(false);
+      const [commentText, setCommentText] = useState('');
+
+      const currentVideo = feed[currentIndex];
+
+      useEffect(() => {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      }, [currentIndex, showChat, showLeaderboard]);
+
+      const handleNext = () => {
+        if (currentIndex < feed.length - 1) {
+          setCurrentIndex(prev => prev + 1);
+          setLiked(false);
+          setShowChat(false);
+        }
+      };
+
+      const handlePrev = () => {
+        if (currentIndex > 0) {
+          setCurrentIndex(prev => prev - 1);
+          setLiked(false);
+          setShowChat(false);
+        }
+      };
+
+      const handleSendComment = (e) => {
+        e.preventDefault();
+        if (!commentText.trim()) return;
+        const newComment = { id: Date.now(), user: 'you', text: commentText };
+        const updatedFeed = [...feed];
+        updatedFeed[currentIndex].comments.push(newComment);
+        setFeed(updatedFeed);
+        setCommentText('');
+      };
+
+      return (
+        <div className="relative w-full h-screen bg-black text-white overflow-hidden flex justify-center items-center select-none">
+          
+          {/* Header */}
+          <header className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center max-w-md mx-auto">
+            <button 
+              onClick={() => setShowLeaderboard(true)}
+              className="flex items-center gap-2 bg-gray-900/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-gray-800 text-xs font-bold"
+            >
+              <i data-lucide="trophy" className="w-4 h-4 text-yellow-400"></i>
+              <span>ТОП КЛУБОВ</span>
+            </button>
+
+            <div className="flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 px-3 py-1.5 rounded-full text-xs font-extrabold">
+              <i data-lucide="shield" className="w-3.5 h-3.5"></i>
+              <span>{currentVideo.club.name}</span>
+              <span className="bg-black/40 px-1.5 py-0.5 rounded text-[10px]">{currentVideo.club.rank}</span>
+            </div>
+          </header>
+
+          {/* Video Player */}
+          <div className="relative w-full max-w-md h-full flex items-center justify-center bg-gray-950">
+            <video
+              key={currentVideo.id}
+              src={currentVideo.videoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
+
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30 pointer-events-none"></div>
+
+            {/* Video Info Overlay */}
+            <div className="absolute bottom-6 left-4 right-16 z-10 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-base">@{currentVideo.author}</span>
+                <span className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                  [{currentVideo.club.tag}]
+                </span>
+              </div>
+
+              <p className="text-sm text-gray-200 line-clamp-2 leading-snug">{currentVideo.caption}</p>
+
+              {currentVideo.projectUrl && (
+                <a
+                  href={currentVideo.projectUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-lg"
+                >
+                  <i data-lucide="sparkles" className="w-3.5 h-3.5"></i>
+                  <span>Открыть проект / Код</span>
+                  <i data-lucide="external-link" className="w-3.5 h-3.5 opacity-70"></i>
+                </a>
+              )}
+            </div>
+
+            {/* Sidebar Controls */}
+            <div className="absolute right-3 bottom-12 z-10 flex flex-col items-center space-y-5">
+              <button onClick={() => setLiked(!liked)} className="flex flex-col items-center">
+                <div className={`p-3 rounded-full backdrop-blur-md ${liked ? 'bg-red-500/20 text-red-500' : 'bg-gray-900/60 text-white'}`}>
+                  <i data-lucide="heart" className="w-6 h-6"></i>
+                </div>
+                <span className="text-[11px] font-bold mt-1">{liked ? currentVideo.likes + 1 : currentVideo.likes}</span>
+              </button>
+
+              <button onClick={() => setShowChat(!showChat)} className="flex flex-col items-center">
+                <div className="p-3 bg-gray-900/60 backdrop-blur-md rounded-full text-white">
+                  <i data-lucide="message-square" className="w-6 h-6"></i>
+                </div>
+                <span className="text-[11px] font-bold mt-1">{currentVideo.comments.length}</span>
+              </button>
+
+              <div className="flex flex-col gap-1 pt-4">
+                <button onClick={handlePrev} disabled={currentIndex === 0} className="p-2 bg-gray-900/60 rounded-full disabled:opacity-30">
+                  <i data-lucide="chevron-up" className="w-5 h-5"></i>
+                </button>
+                <button onClick={handleNext} disabled={currentIndex === feed.length - 1} className="p-2 bg-gray-900/60 rounded-full disabled:opacity-30">
+                  <i data-lucide="chevron-down" className="w-5 h-5"></i>
+                </button>
+              </div>
+            </div>
+
+            {/* Chat Modal */}
+            {showChat && (
+              <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gray-950/95 backdrop-blur-xl border-t border-gray-800 rounded-t-3xl p-4 z-30 flex flex-col justify-between">
+                <div className="flex justify-between items-center border-b border-gray-800 pb-2">
+                  <span className="font-bold text-sm">💬 Живой чат ролика</span>
+                  <button onClick={() => setShowChat(false)} className="text-gray-400">✕</button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto my-3 space-y-2 text-xs">
+                  {currentVideo.comments.map(c => (
+                    <div key={c.id} className="bg-gray-900 border border-gray-800 p-2.5 rounded-xl">
+                      <span className="font-bold text-cyan-400 mr-1.5">@{c.user}:</span>
+                      <span>{c.text}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <form onSubmit={handleSendComment} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={commentText}
+                    onChange={e => setCommentText(e.target.value)}
+                    placeholder="Написать комментарий..."
+                    className="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs focus:outline-none text-white"
+                  />
+                  <button type="submit" className="bg-cyan-500 text-black font-bold px-4 py-2 rounded-xl text-xs">
+                    Отправить
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Leaderboard Modal */}
+            {showLeaderboard && (
+              <div className="absolute inset-0 bg-black/95 backdrop-blur-2xl z-40 p-6 flex flex-col justify-between max
